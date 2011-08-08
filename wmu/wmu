@@ -63,7 +63,7 @@ class WMU(object):
 		return re.sub('\s\[\d+\]$', '', title)
 
 	def selectWindow(self, prompt):
-		dmenu = Popen(['dmenu', '-l', '20', '-f', '-i', '-p', prompt], stdin=PIPE, stdout=PIPE, stderr=PIPE);
+		dmenu = Popen(['dmenu', '-f', '-i', '-p', prompt], stdin=PIPE, stdout=PIPE, stderr=PIPE);
 
 		dmenu_input = "\n".join([self.formatWin(w) for w in Window.getList()])
 
