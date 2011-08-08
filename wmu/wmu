@@ -1,5 +1,8 @@
 #!/usr/bin/python
 
+# Copyright: 2011 David Vogt <dv@winged.ch>
+# License:   BSD 3-Clause
+
 from subprocess import PIPE, Popen
 import os
 import re
