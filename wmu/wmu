@@ -12,15 +12,20 @@ class Window:
 	def __init__(self, id, desktop, title):
 		self.id      = id
 		self.desktop = desktop
-		self.title   = self.shorten(title, 20)
+		self.title   = self.makeTitle(title)
 		#self.title   = title
 		print(self)
 
-	def shorten(self, string, maxlen):
-		if(len(string) > maxlen):
-			return string[:maxlen] + '...'
-		else:
-			return string
+	def makeTitle(self, title):
+		"""Add a number to the window's title if there's already an equally named window"""
+
+		if title in Window.count: Window.count[title] += 1
+		else:                     Window.count[title]  = 1
+
+		if Window.count[title] > 1:
+			title = title + " (%d)" % Window.count[title]
+
+		return title
 
 	def __repr__(self):
 		return "Window(id=%s, desktop=%d, title=%s)" % (self.id, self.desktop, self.title)
