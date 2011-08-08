@@ -1,0 +1,98 @@
+#!/usr/bin/python
+
+from subprocess import PIPE, Popen
+import os
+import re
+import sys
+
+class Window:
+	def __init__(self, id, desktop, title):
+		self.id      = id
+		self.desktop = desktop
+		self.title   = self.shorten(title, 20)
+		#self.title   = title
+		print(self)
+
+	def shorten(self, string, maxlen):
+		if(len(string) > maxlen):
+			return string[:maxlen] + '...'
+		else:
+			return string
+
+	def __repr__(self):
+		return "Window(id=%s, desktop=%d, title=%s)" % (self.id, self.desktop, self.title)
+
+class WMU(object):
+
+	def getWindows(self):
+		windows = os.popen('wmctrl -l').read().split("\n")
+		windows = [x for x in windows if x[:2] == '0x']
+		return windows
+
+	def parsewin(self, w):
+		parts = list(re.split('\s+', w, 3))
+		return Window(
+			parts[0],
+			int(parts[1]),
+			parts[3]
+		)
+
+	def listWindows(self):
+		return [self.parsewin(x) for x in self.getWindows()]
+
+	def getWindowByTitle(self, title):
+		""" First window by given title"""
+		matches = [x for x in self.listWindows() if x.title == title]
+
+		return matches[0] if len(matches) > 0 else None
+
+	def formatWindowForDmenu(self, window):
+		return '%s [%d]' % (window.title, window.desktop)
+
+	def unformatWindow(self, title):
+		"""Strip off desktop identifier at the end"""
+		return re.sub('\s\[\d+\]$', '', title)
+
+	def selectWindow(self, prompt):
+		dmenu = Popen(['dmenu', '-i', '-p', prompt], stdin=PIPE, stdout=PIPE, stderr=PIPE);
+		dmenu_input = "\n".join([self.formatWindowForDmenu(w) for w in wmu.listWindows()])
+		print(dmenu_input + "\n\n")
+		(out, err) = dmenu.communicate(bytes(dmenu_input, 'UTF-8'))
+		selected = out.decode("UTF-8")
+		dmenu.wait()
+		return self.getWindowByTitle(self.unformatWindow(selected.strip()))
+
+	def usage(self):
+		return """Usage:
+			wmu fetch  -- fetch selected window to current desktop, and activate it
+			wmu go     -- go to selected window. Switch desktop if needed
+		"""
+
+	def fetch(self):
+		window = wmu.selectWindow('fetch win:')
+		if window == None: exit()
+		print("Fetching window %s" % window)
+		os.system('wmctrl -i -R %s' % window.id)
+		exit()
+
+	def goto(self):
+		window = wmu.selectWindow('goto win:')
+		if window == None: exit()
+		print("Going to window %s" % window)
+		os.system('wmctrl -i -a %s' % window.id)
+		exit()
+
+	def doAction(self, action):
+		if   (action == 'go'   ): return self.goto()
+		elif (action == 'fetch'): return self.fetch()
+		return self.usage();
+
+
+wmu = WMU()
+
+if(len(sys.argv) <= 1):
+	print(wmu.usage())
+	exit()
+
+wmu.doAction(sys.argv[1])
+
