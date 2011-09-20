@@ -16,4 +16,4 @@ This requires that the following commandline tools are available on your
 system:
 
   - wmctrl
-  - dmenu
+  - dmenu with xft patch
