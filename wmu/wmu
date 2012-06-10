@@ -42,7 +42,8 @@ class Window:
 				int(parts[1]) + 1,
 				parts[3]
 			)
-		return [parsewin(x) for x in windows]
+		all_windows = [parsewin(x) for x in windows]
+		return [win for win in all_windows if win.desktop > 0]
 
 
 class WMU(object):
